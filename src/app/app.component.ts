@@ -12,6 +12,7 @@ export class AppComponent {
 
   tiempo_inicio: number = Date.now();
   chart: any = null;
+  listaAux:Array<string> = [];
 
   textoInput : string = "0";
   texto_aux: string = "0";
@@ -24,7 +25,7 @@ export class AppComponent {
     this.createChart();
 
     this.WebsocketService.listen("envio_data").subscribe((dataSerial: any) => {
-
+      
       const tiempo_lectura: number = Date.now();
 
       const tiempo_intervalo = (tiempo_lectura - this.tiempo_inicio)/1000;
@@ -49,6 +50,8 @@ export class AppComponent {
       */
 
       this.chart.update();
+      
+      //this.listaAux.push(dataSerial.value);
     });
 
   }
@@ -131,4 +134,40 @@ export class AppComponent {
 
   }
 
+  download(content:string, fileName:string, contentType:string) {
+    const a = document.createElement("a");
+    const file = new Blob([content], { type: contentType });
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+  }
+
+  onDownload(){
+    
+    console.log(this.listaAux.toString());
+
+    let aux:string = "";
+    
+    for(let i = 0; i<this.listaAux.length;i++){
+
+      let replace =  this.listaAux[i].replace('--','_');
+      let replace2 =  replace.replace('-','_');
+      let split = replace2.split("_");
+
+      let aux2 = aux.concat("{ angulo: " , `${split[0].toString()}, `);
+      let aux3 = aux2.concat("PWM: " , `${split[1].toString()} }, `);
+
+      aux = aux3;
+
+    }
+    
+    const aux4 = aux.substring(1,aux.length-2);
+    //const aux5 = aux4.slice(1,-1);
+    const dataString = "[{" + aux4.concat("]");
+
+    console.log(dataString);
+
+    //this.download(dataString, "datos_entrenamiento.json", "text/plain");
+  }
+  
 }
